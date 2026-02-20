@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gatsby Party Budget Simulator — English 11</title>
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" x2="1" y1="0" y2="1"%3E%3Cstop stop-color="%23d6be6a"/%3E%3Cstop offset="1" stop-color="%23b79c47"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="64" height="64" rx="10" fill="%23ffffff"/%3E%3Cpath d="M12 20h40v1H12zm0 23h40v1H12z" fill="url(%23g)"/%3E%3Cpath d="M32 14l8 36h-5l-3-15-3 15h-5z" fill="url(%23g)"/%3E%3C/svg%3E' />
+<style>
+  :root{
+    --bg:#ffffff; --panel:#fafafc; --ink:#0c0c0c; --muted:#525252; --accent:#0b5d57; --edio:#1e88e5; --warn:#a15a00; --danger:#b00020; --gold:#8a6f2a; --outline:#e1e1ea;
+  }
+  html,body{margin:0;height:100%;font: 16.75px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink)}
+  header{padding:18px 22px;border-bottom:1px solid var(--outline);background:#fff;position:sticky;top:0;z-index:5}
+  h1.title{font-size:1.15rem;letter-spacing:.06em;text-transform:uppercase;margin:0}
+  .deco{height:8px;background:linear-gradient(90deg,transparent 0,transparent 6%,var(--gold) 6%,var(--gold) 94%,transparent 94%);border-top:1px solid var(--outline);border-bottom:1px solid var(--outline)}
+
+  .toprow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:12px}
+  .badges{display:flex;gap:12px;flex-wrap:wrap}
+  .tot{background:#fff;border:1px solid var(--outline);border-radius:999px;padding:8px 12px;font-weight:700}
+
+  main{display:grid;grid-template-columns:420px 1fr;gap:20px;padding:20px}
+  @media (max-width: 980px){ main{grid-template-columns:1fr} }
+
+  .controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+  .control{background:var(--panel);border:1px solid var(--outline);padding:10px 14px;border-radius:12px;display:flex;align-items:center;gap:10px}
+  .control input[type="number"]{background:#ffffff;color:var(--ink);border:1px solid var(--outline);border-radius:10px;padding:8px 10px;width:150px}
+  .control input[disabled]{background:#f3f3f7;color:#444}
+  .btn{background:var(--accent);color:#fff;border:none;padding:12px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+  .btn.secondary{background:#d6d6e3;color:#111}
+  .btn.edio{background:var(--edio);color:#fff;padding:12px 18px;font-size:1.02rem;border-radius:12px}
+  .btn.edio:disabled{opacity:.55;cursor:not-allowed;filter:saturate(60%)}
+
+  .panel{background:var(--panel);border:1px solid var(--outline);border-radius:16px}
+  .panel h2{font-size:1rem;margin:0;padding:14px 16px;border-bottom:1px solid var(--outline);letter-spacing:.06em;text-transform:uppercase}
+
+  .bank{max-height:calc(100vh - 270px);overflow:auto}
+  .category{border-top:1px dashed var(--outline)}
+  details.category summary{list-style:none;cursor:pointer;padding:12px 16px;color:var(--muted);font-weight:650;letter-spacing:.035em}
+  details.category.missing summary{color:var(--danger)}
+  details[open].category summary{color:var(--ink)}
+
+  .items{display:grid;grid-template-columns:1fr;gap:10px;padding:12px}
+  .item{position:relative;background:#fff;border:1px solid var(--outline);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .item[draggable="true"]{cursor:grab}
+  .item .name{font-weight:700}
+  .item .cost{color:var(--gold);font-feature-settings:"tnum" 1, "lnum" 1}
+  .item[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:12px;right:12px;bottom:100%;transform:translateY(-6px);background:rgba(18,18,22,.95);color:#f7f7f7;font-size:.9rem;font-weight:450;line-height:1.45;padding:7px 9px;border-radius:9px;border:1px solid rgba(214,190,106,.45);box-shadow:0 8px 18px rgba(0,0,0,.18);z-index:10;white-space:normal}
+
+  .bag{min-height:340px}
+  .drop{padding:12px}
+  .drop .empty{color:var(--muted);padding:20px;text-align:center;border:1px dashed var(--outline);border-radius:12px;background:#fff}
+  .selected-list{display:grid;grid-template-columns:1fr;gap:10px}
+  .selected{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--outline);border-radius:12px;padding:10px}
+  .selected .type{color:#3f3f3f;font-size:.95rem}
+  .selected .remove{background:#f1f1f7;color:#111;border:1px solid var(--outline);border-radius:10px;padding:8px 10px;cursor:pointer}
+  .selected .remove[disabled]{opacity:.5;cursor:not-allowed}
+
+  .summary{padding:14px;border-top:1px solid var(--outline);display:grid;gap:12px;background:#fff;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .bar{height:12px;background:#edeef7;border-radius:999px;overflow:hidden;border:1px solid #d7d7e6}
+  .bar>span{display:block;height:100%;background:linear-gradient(90deg,#c0a75a,#78bdb5);width:0}
+  .over{color:#b00020;font-weight:800}
+  .pill{padding:3px 10px;border-radius:999px;border:1px solid var(--outline);font-size:.9rem;color:#3f3f3f}
+  .requirements{font-size:1rem;color:#404040}
+
+  footer{padding:16px 22px;border-top:1px solid var(--outline);display:flex;justify-content:space-between;align-items:center;background:#fff;position:sticky;bottom:0}
+  /* Visually hidden utility for screen-reader-only descriptions */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+  <header>
+    <!-- WCAG: Provide a programmatic level-one heading -->
+    <h1 class="title" id="page-title">Gatsby Party Budget Simulator — English 11</h1>
+    <div class="deco" aria-hidden="true"></div>
+    <div class="toprow">
+      <div class="badges" aria-describedby="status-help">
+        <span class="tot">Subtotal: <strong id="topSubtotal">$0</strong></span>
+        <span class="tot">Budget: <strong id="topBudget">$1,000,000</strong></span>
+        <span class="tot">Remaining: <strong id="topRemaining">$1,000,000</strong></span>
+      </div>
+      <p id="status-help" class="sr-only">Totals update automatically as you add items.</p>
+      <div class="controls" aria-label="Locked settings and actions">
+        <div class="control">
+          <!-- WCAG: Associate label and input via for/id -->
+          <label for="budget" id="budget-label">Budget (US dollars)</label>
+          <input id="budget" name="budget" type="number" value="1000000" aria-readonly="true" disabled aria-labelledby="budget-label budget-locked" />
+          <span id="budget-locked" class="sr-only">This value is locked and cannot be edited.</span>
+        </div>
+        <div class="control">
+          <label for="guests" id="guests-label">Guest count</label>
+          <input id="guests" name="guests" type="number" value="250" aria-readonly="true" disabled aria-labelledby="guests-label guests-locked" />
+          <span id="guests-locked" class="sr-only">This value is locked and cannot be edited.</span>
+        </div>
+        <div class="control"><span class="pill">Safety Requirements: required</span></div>
+        <div class="control">
+          <button class="btn edio" id="copyBtnTop" disabled title="Complete all categories to enable">Copy to edio</button>
+          <button class="btn secondary" id="resetBtn">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main aria-labelledby="page-title">
+    <section class="panel bank" aria-label="Item Bank">
+      <h2>Item Bank</h2>
+      <div id="bank"></div>
+    </section>
+
+    <section class="panel bag" aria-label="Your Selection">
+      <h2>Your Selection</h2>
+      <div class="drop" id="dropzone" aria-label="Drop zone">
+        <div class="empty" id="emptyMsg">Drag items here, or click an item to add it.</div>
+        <div class="selected-list" id="selectedList"></div>
+      </div>
+      <div class="summary" aria-label="Summary">
+        <div class="row"><span>Subtotal:</span><strong id="subtotal">$0</strong></div>
+        <div class="row"><span>Budget:</span><strong id="budgetLabel">$1,000,000</strong></div>
+        <div class="bar" aria-hidden="true"><span id="barFill"></span></div>
+        <div class="row"><span>Remaining:</span><strong id="remaining">$1,000,000</strong></div>
+        <div class="row"><span>Status:</span><span id="status" class="pill">Within budget</span></div>
+        <div class="row requirements"><span>Requirements:</span><span id="reqStatus">Missing: —</span></div>
+        <div class="row" style="align-items:center;flex-wrap:wrap"><button class="btn edio" id="copyBtnMid" disabled title="Complete all categories to enable">Copy to edio</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div>Per‑guest items auto‑scale for <strong>250 guests</strong>. Safety items are always included and cannot be removed. One choice per category.</div>
+    <div style="display:flex;gap:10px;align-items:center"><button class="btn edio" id="copyBtnBottom" disabled title="Complete all categories to enable">Copy to edio</button><small style="opacity:.7">v16d — WCAG fixes</small></div>
+  </footer>
+
+<script>
+const LOCKED_GUESTS = 250; const LOCKED_BUDGET = 1000000;
+const REQUIRED_CATEGORIES = ['Venue & Property','Entertainment','Food & Drink','Transportation','Décor & Atmosphere','Illegal / Risk','Media & Image','Staffing','Fun Extras','Prestige Upgrades'];
+const HINTS = {'Venue & Property':'Connect venue to East/West Egg or the green light; appearance vs. reality.','Entertainment':'Tie spectacle to Jazz Age excess—whose values are you signaling?','Food & Drink':'Prohibition risks + per‑guest costs → conspicuous consumption.','Transportation':'Gatsby’s car = wealth + danger; what does your choice reveal?','Décor & Atmosphere':'Use color/symbol (green light, white/gold) or Eckleburg motif.','Illegal / Risk':'Show moral cost—bribes/bootlegging; legality vs. reputation.','Media & Image':'PR manufactures status; keep media era‑appropriate.','Staffing':'Make hidden labor visible (overtime/cleanup).','Fun Extras':'Whimsy with purpose—how does it reinforce your theme?','Prestige Upgrades':'Temptation to overspend—what message does this send?','Safety Requirements':'Real‑world constraints—ethical duty to protect guests.'};
+const ITEMS=[
+{id:'venue_west_egg_mansion',name:'West Egg Mansion (1 night)',cost:180000,category:'Venue & Property',type:'fixed'},
+{id:'venue_east_egg_estate',name:'Exclusive East Egg Estate',cost:650000,category:'Venue & Property',type:'fixed'},
+{id:'venue_nyc_ballroom',name:'NYC Luxury Ballroom',cost:90000,category:'Venue & Property',type:'fixed'},
+{id:'venue_waterfront',name:'Waterfront Lot w/ View of Green Light',cost:140000,category:'Venue & Property',type:'fixed'},
+{id:'venue_train_station',name:'Abandoned Train Station (thematic)',cost:50000,category:'Venue & Property',type:'fixed'},
+{id:'venue_yacht',name:'Harbor Yacht (300‑guest capacity)',cost:500000,category:'Venue & Property',type:'fixed'},
+{id:'venue_art_deco_build',name:'Custom Art Deco Ballroom Build',cost:500000,category:'Venue & Property',type:'fixed'},
+{id:'ent_trio',name:'Small Jazz Trio',cost:20000,category:'Entertainment',type:'fixed'},
+{id:'ent_orchestra',name:'22‑Piece Jazz Orchestra',cost:120000,category:'Entertainment',type:'fixed'},
+{id:'ent_headliner',name:'World‑Famous Jazz Headliner',cost:380000,category:'Entertainment',type:'fixed'},
+{id:'ent_vaudeville',name:'Vaudeville Comedian',cost:15000,category:'Entertainment',type:'fixed'},
+{id:'ent_aerial',name:'Aerial Silks Performers',cost:40000,category:'Entertainment',type:'fixed'},
+{id:'ent_fireworks',name:'Fireworks Spectacle (3 min)',cost:200000,category:'Entertainment',type:'fixed'},
+{id:'food_catering_pp',name:'Catering (per guest)',cost:220,category:'Food & Drink',type:'per_guest'},
+{id:'drink_champagne_pp',name:'Champagne (per guest)',cost:140,category:'Food & Drink',type:'per_guest'},
+{id:'food_oyster_bar',name:'Oyster & Seafood Ice Bar',cost:30000,category:'Food & Drink',type:'fixed'},
+{id:'drink_bootleg',name:'Bootleg Liquor Shipment',cost:130000,category:'Food & Drink',type:'fixed'},
+{id:'prohibition_bribes',name:'Prohibition Bribes',cost:100000,category:'Food & Drink',type:'fixed'},
+{id:'mixology',name:'Prohibition‑Era Mixologist',cost:10000,category:'Food & Drink',type:'fixed'},
+{id:'cooling',name:'Cooling & Refrigeration (ice, hardware)',cost:25000,category:'Food & Drink',type:'fixed'},
+{id:'car_fleet',name:'Chauffeured Rolls‑Royce Fleet',cost:160000,category:'Transportation',type:'fixed'},
+{id:'car_gatsby',name:"Iconic 'Gatsby' Yellow Car",cost:45000,category:'Transportation',type:'fixed'},
+{id:'shuttle',name:'NYC Shuttle Service',cost:25000,category:'Transportation',type:'fixed'},
+{id:'boat_shuttle',name:'Boat Shuttle Manhattan ⇄ West Egg',cost:50000,category:'Transportation',type:'fixed'},
+{id:'valet',name:'Valet Team (20 workers)',cost:15000,category:'Transportation',type:'fixed'},
+{id:'decor_gold_black',name:'Art Deco Gold & Black Décor',cost:45000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'decor_green_light',name:'Green Light Installation',cost:10000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'decor_florals',name:'White & Gold Floral Program',cost:35000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'decor_eckleburg',name:'Eckleburg‑Inspired Billboard',cost:25000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'decor_stars',name:'Indoor Starscape Ceiling',cost:40000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'decor_ice_garden',name:'Ice Sculpture Garden',cost:85000,category:'Décor & Atmosphere',type:'fixed'},
+{id:'risk_police_bribe',name:'Police Chief Bribe',cost:100000,category:'Illegal / Risk',type:'fixed'},
+{id:'risk_bootlegger_protect',name:'Rival Bootlegger Protection',cost:110000,category:'Illegal / Risk',type:'fixed'},
+{id:'risk_cleanup',name:'Discreet Cleanup Crew',cost:35000,category:'Illegal / Risk',type:'fixed'},
+{id:'media_pr_firm',name:'PR & Reputation Firm',cost:90000,category:'Media & Image',type:'fixed'},
+{id:'media_radio',name:'Radio Announcement Spot',cost:12000,category:'Media & Image',type:'fixed'},
+{id:'media_paparazzi',name:'Paparazzi & Photographers',cost:45000,category:'Media & Image',type:'fixed'},
+{id:'media_film',name:'Silent‑Film Style Montage',cost:25000,category:'Media & Image',type:'fixed'},
+{id:'staff_100',name:'100‑Person Event Staff (chefs, servers, cleaners)',cost:220000,category:'Staffing',type:'fixed'},
+{id:'staff_butlers',name:'Butler Team (10)',cost:25000,category:'Staffing',type:'fixed'},
+{id:'staff_bartenders',name:'Private Bartender Squad',cost:18000,category:'Staffing',type:'fixed'},
+{id:'staff_stage_mgr',name:'Stage Manager',cost:12000,category:'Staffing',type:'fixed'},
+{id:'fun_swan',name:'Live Swans in Garden',cost:35000,category:'Fun Extras',type:'fixed'},
+{id:'fun_balloon',name:'Balloon Drop at Midnight',cost:12000,category:'Fun Extras',type:'fixed'},
+{id:'fun_perfumers',name:'“Daisy” Perfume Misting Stations',cost:8000,category:'Fun Extras',type:'fixed'},
+{id:'fun_champ_tower',name:'Champagne Tower',cost:12000,category:'Fun Extras',type:'fixed'},
+{id:'fun_puppy',name:'Puppy Lounge (handlers included)',cost:18000,category:'Fun Extras',type:'fixed'},
+{id:'prestige_chandeliers',name:'Crystal Chandeliers (pair)',cost:150000,category:'Prestige Upgrades',type:'fixed'},
+{id:'prestige_invites',name:'Gold‑Leaf Invitations',cost:35000,category:'Prestige Upgrades',type:'fixed'},
+{id:'prestige_roses',name:'Imported Roses (10,000 stems)',cost:65000,category:'Prestige Upgrades',type:'fixed'},
+{id:'prestige_socialite',name:'Paid Socialite Appearance',cost:120000,category:'Prestige Upgrades',type:'fixed'},
+{id:'safe_fire',name:'Fire Safety Team',cost:25000,category:'Safety Requirements',type:'fixed',mandatory:true},
+{id:'safe_med',name:'Medical Crew',cost:15000,category:'Safety Requirements',type:'fixed',mandatory:true},
+{id:'safe_permits',name:'Event Permits',cost:15000,category:'Safety Requirements',type:'fixed',mandatory:true},
+{id:'safe_security',name:'Security Checkpoints',cost:25000,category:'Safety Requirements',type:'fixed',mandatory:true}
+];
+
+let selected = new Map();
+function addItem(id){ const item=ITEMS.find(i=>i.id===id); if(!item) return; if(item.category!=='Safety Requirements'){ for(const key of selected.keys()){ const it=ITEMS.find(x=>x.id===key); if(it && it.category===item.category && !it.mandatory){ selected.delete(key); break; } } } selected.set(id,{id}); renderSelected(); }
+function removeItem(id){ const it=ITEMS.find(x=>x.id===id); if(it && it.mandatory) return; selected.delete(id); renderSelected(); }
+function ensureMandatory(){ ITEMS.filter(i=>i.mandatory).forEach(i=>{ if(!selected.has(i.id)) selected.set(i.id,{id:i.id}); }); }
+function groupByCategory(items){ const map=new Map(); items.forEach(i=>{ if(!map.has(i.category)) map.set(i.category,[]); map.get(i.category).push(i); }); return map; }
+function metCategorySet(){ const chosen=[...selected.values()].map(s=> ITEMS.find(i=>i.id===s.id)); return new Set(chosen.filter(it=>!it.mandatory).map(it=>it.category)); }
+function renderBank(){ const bank=document.getElementById('bank'); bank.innerHTML=''; const groups=groupByCategory(ITEMS); const met=metCategorySet(); [...groups.keys()].sort().forEach(cat=>{ const details=document.createElement('details'); details.className='category'; details.dataset.cat=cat; if(!met.has(cat) && cat!=='Safety Requirements') details.classList.add('missing'); const summary=document.createElement('summary'); summary.textContent=cat; details.appendChild(summary); const itemsWrap=document.createElement('div'); itemsWrap.className='items'; groups.get(cat).forEach(item=>{ const el=document.createElement('div'); el.className='item'; el.draggable=true; el.dataset.id=item.id; el.setAttribute('data-tip',HINTS[item.category]||''); el.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain', item.id); }); el.addEventListener('click',()=> addItem(item.id)); const left=document.createElement('div'); const name=document.createElement('div'); name.className='name'; name.textContent=item.name; const type=document.createElement('div'); type.className='type'; type.textContent=item.type==='per_guest'?'per guest':'fixed'; type.style.opacity=.78; left.appendChild(name); left.appendChild(type); const right=document.createElement('div'); right.className='cost'; right.textContent=dollar(item.cost)+(item.type==='per_guest'?' / guest':''); el.appendChild(left); el.appendChild(right); itemsWrap.appendChild(el); }); details.appendChild(itemsWrap); bank.appendChild(details); }); }
+function updateCategoryIndicators(){ const met=metCategorySet(); document.querySelectorAll('details.category').forEach(d=>{ const cat=d.dataset.cat; if(cat==='Safety Requirements') return; if(met.has(cat)) d.classList.remove('missing'); else d.classList.add('missing'); }); }
+function renderSelected(){ ensureMandatory(); const list=document.getElementById('selectedList'); const emptyMsg=document.getElementById('emptyMsg'); list.innerHTML=''; emptyMsg.style.display=selected.size===0?'block':'none'; const items=[...selected.values()].map(s=>({...s,item:ITEMS.find(i=>i.id===s.id)})).sort((a,b)=> a.item.category.localeCompare(b.item.category)); items.forEach(s=>{ const wrap=document.createElement('div'); wrap.className='selected'; const name=document.createElement('div'); name.innerHTML=`<strong>${s.item.name}</strong><br><span class="type">${s.item.category} • ${s.item.type==='per_guest'?'per guest':'fixed'}</span>`; const cost=document.createElement('div'); cost.className='cost'; cost.textContent=dollar(lineTotalFor(s.item)); const remove=document.createElement('button'); remove.className='remove'; remove.textContent='Remove'; remove.addEventListener('click',()=> removeItem(s.id)); if(s.item.mandatory){ remove.disabled=true; } wrap.appendChild(name); wrap.appendChild(cost); wrap.appendChild(remove); list.appendChild(wrap); }); updateTotals(); }
+function dollar(x){ return x.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}); }
+function lineTotalFor(item){ return item.type==='per_guest'? item.cost*LOCKED_GUESTS : item.cost; }
+function computeSubtotal(){ let sum=0; for(const {id} of selected.values()){ const it=ITEMS.find(i=>i.id===id); if(it) sum+=lineTotalFor(it); } return sum; }
+function categorySet(){ return metCategorySet(); }
+function checkRequirements(){ const met=categorySet(); const missing=REQUIRED_CATEGORIES.filter(cat=> !met.has(cat)); const el=document.getElementById('reqStatus'); if(missing.length){ el.textContent='Missing: '+missing.join(', '); el.style.color='#784c00'; } else { el.textContent='All required categories selected'; el.style.color='#115b55'; } updateCategoryIndicators(); setCopyEnabled(missing.length===0); }
+function setCopyEnabled(enabled){ ['copyBtnTop','copyBtnMid','copyBtnBottom'].forEach(id=>{ const b=document.getElementById(id); b.disabled=!enabled; b.setAttribute('aria-disabled', String(!enabled)); if(!enabled){ b.title='Complete all categories to enable'; } else { b.removeAttribute('title'); } }); }
+function updateTotals(){ const budget=LOCKED_BUDGET; const subtotal=computeSubtotal(); const remaining=budget-subtotal; document.getElementById('subtotal').textContent=dollar(subtotal); document.getElementById('budgetLabel').textContent=dollar(budget); document.getElementById('remaining').textContent=dollar(remaining); const pct=Math.max(0,Math.min(100,(subtotal/Math.max(1,budget))*100)); document.getElementById('barFill').style.width=pct+'%'; const status=document.getElementById('status'); if(remaining<0){ status.textContent='Over budget'; status.classList.add('over'); } else { status.textContent='Within budget'; status.classList.remove('over'); } document.getElementById('topSubtotal').textContent=dollar(subtotal); document.getElementById('topBudget').textContent=dollar(budget); document.getElementById('topRemaining').textContent=dollar(remaining); checkRequirements(); }
+function generateSummaryText(){ const budget=LOCKED_BUDGET; const subtotal=computeSubtotal(); const remaining=budget-subtotal; const met=categorySet(); const missing=REQUIRED_CATEGORIES.filter(cat=> !met.has(cat)); const items=[...selected.values()].map(s=> ITEMS.find(i=>i.id===s.id)).sort((a,b)=> a.category.localeCompare(b.category)); let lines=[]; lines.push('Gatsby Million-Dollar Budget — Submission'); lines.push('Guests: '+LOCKED_GUESTS); lines.push('Budget: '+dollar(budget)); lines.push(''); lines.push('Selections:'); let currentCat=''; for(const it of items){ const cat=it.category; if(cat!==currentCat){ lines.push('  '+cat+':'); currentCat=cat; } lines.push('    - '+it.name+' → '+dollar(lineTotalFor(it))); } lines.push(''); lines.push('Subtotal: '+dollar(subtotal)); lines.push('Remaining: '+dollar(remaining)); lines.push('Status: '+(remaining<0?'OVER budget':'Within budget')); lines.push('Requirements: '+(missing.length?('Missing → '+missing.join(', ')):'All met')); return lines.join('\n'); }
+function copyToEdio(){ const text=generateSummaryText(); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('Copied. Paste into edio.'); }
+const dropzone=document.getElementById('dropzone'); ['dragover','dragenter'].forEach(evt=> dropzone.addEventListener(evt,e=>{ e.preventDefault(); })); dropzone.addEventListener('drop',e=>{ e.preventDefault(); const id=e.dataTransfer.getData('text/plain'); if(id) addItem(id); });
+document.getElementById('resetBtn').addEventListener('click',()=>{ selected.clear(); renderSelected(); });
+['copyBtnTop','copyBtnMid','copyBtnBottom'].forEach(id=> document.getElementById(id).addEventListener('click', copyToEdio));
+renderBank(); renderSelected();
+</script>
+</body>
+</html>
